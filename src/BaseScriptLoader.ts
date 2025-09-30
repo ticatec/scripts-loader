@@ -19,13 +19,18 @@ export default abstract class BaseScriptLoader<T, K> {
     private readonly timestampFile: string;
     private isLoading: boolean = false;
 
-    protected constructor(scriptDir: string, pollIntervalMs: number, clean: boolean = false) {
+    protected constructor(scriptDir: string, pollIntervalMs: number) {
         this.scriptDir = path.resolve(scriptDir);
         this.timestampFile = path.join(this.scriptDir, '.last_update_timestamp');
         this.logger.debug(`创建脚本管理器，插件路径:${this.scriptDir}`);
         this.pollIntervalMs = pollIntervalMs;
+    }
+
+    protected async init(): Promise<void> {
+        let clean = !fs.existsSync(this.timestampFile);
         this.ensurePluginsDirectory('plugins', clean);
         this.anchor = this.loadLastUpdateTimestamp(clean);
+        await this.loadLatestScripts();
         this.startWatching();
     }
 

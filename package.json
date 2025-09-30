@@ -1,6 +1,6 @@
 {
   "name": "@ticatec/script-loader",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A powerful TypeScript dynamic script loading and management library with real-time script updates, caching management, and timestamp persistence.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
