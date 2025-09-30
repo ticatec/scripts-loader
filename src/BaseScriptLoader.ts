@@ -8,7 +8,7 @@ export type ScriptInstance<T, K> = {
 }
 
 
-export default abstract class BaseScriptManager<T, K> {
+export default abstract class BaseScriptLoader<T, K> {
 
     protected logger = log4js.getLogger(this.constructor.name);
     private scriptsCache: Map<string, ScriptInstance<T, K>> = new Map();

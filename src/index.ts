@@ -1,3 +1,3 @@
-import BaseScriptManager from "./BaseScriptManager";
+import BaseScriptLoader from "./BaseScriptLoader";
 
-export default BaseScriptManager;
+export default BaseScriptLoader;
