@@ -1,0 +1,70 @@
+{
+  "name": "@ticatec/script-loader",
+  "version": "0.0.1",
+  "description": "A powerful TypeScript dynamic script loading and management library with real-time script updates, caching management, and timestamp persistence.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*",
+    "README.md",
+    "README_CN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "build": "rm -rf ./lib && tsc",
+    "clean": "rm -rf ./lib",
+    "prepublishOnly": "npm run build",
+    "publish-public": "npm publish --access public",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"No linting configured\" && exit 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "script-loader",
+    "dynamic-loading",
+    "typescript",
+    "log4js",
+    "script-management",
+    "real-time-updates",
+    "caching",
+    "timestamp-persistence",
+    "nodejs",
+    "javascript",
+    "plugin-system",
+    "hot-reload",
+    "script-engine"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ticatec/scripts-loader.git"
+  },
+  "author": {
+    "name": "Henry Feng",
+    "email": "huili.f@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ticatec/scripts-loader/issues"
+  },
+  "homepage": "https://github.com/ticatec/scripts-loader#readme",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ticatec"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "log4js": "^6.7.0"
+  },
+  "peerDependenciesMeta": {
+    "log4js": {
+      "optional": true
+    }
+  }
+}
