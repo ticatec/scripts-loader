@@ -61,4 +61,10 @@ export default class DynaModuleManager {
         return this.loader.getModule(key);
     }
 
+    /**
+     * 关闭动态模块管理，通常用于系统推出的时候
+     */
+    shutdown() {
+        DynaModuleManager.instance.loader.stopWatching();
+    }
 }

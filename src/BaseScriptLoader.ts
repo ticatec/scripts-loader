@@ -189,6 +189,7 @@ export default abstract class BaseScriptLoader {
                 // 清除require缓存以确保重新加载
                 if (require.cache[filePath]) {
                     delete require.cache[filePath];
+                    this.afterRemoveModule(item.keyCode, filePath);
                 }
             }
             this.flexiFiles.set(item.keyCode, filePath);
@@ -210,6 +211,7 @@ export default abstract class BaseScriptLoader {
         if (require.cache[filePath]) {
             delete require.cache[filePath];
             this.logger.debug(`Require cache cleared for: ${filePath}`);
+            this.afterRemoveModule(item.keyCode, filePath);
         }
     }
 
@@ -248,6 +250,10 @@ export default abstract class BaseScriptLoader {
         }, this.pollIntervalMs);
 
         this.logger.log(`Started watching for script changes every ${this.pollIntervalMs}ms`);
+    }
+
+    protected afterRemoveModule(keyCode: string, modFile: string) {
+
     }
 
     /**
