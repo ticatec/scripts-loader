@@ -1,35 +1,38 @@
-import log4js from "log4js";
-import BaseScriptLoader from "./BaseScriptLoader";
+import { getLogger, Logger } from "@ticatec/logger-wrapper";
+import BaseScriptLoader from "./BaseScriptLoader.js";
 
 export interface DynaScript {
     /**
-     *
+     * Key code identifier
      */
     keyCode: string;
     /**
-     *
+     * Target file name
      */
     fileName: string;
     /**
-     *
+     * Active state flag
      */
     active: boolean;
     /**
-     * 最后更新时间
+     * Last update timestamp
      */
     latestUpdated: Date;
     /**
-     *
+     * Executable script source code
      */
     scriptCode: string;
 }
 
-
 export default class DynaModuleManager {
 
     private static instance: DynaModuleManager;
+    private static initPromise: Promise<DynaModuleManager> | null = null;
+    private static initSeq = 0;
 
-    protected logger = log4js.getLogger(this.constructor.name);
+    protected get logger(): Logger {
+        return getLogger(this.constructor.name);
+    }
     private loader: BaseScriptLoader;
 
     private constructor(loader: BaseScriptLoader) {
@@ -38,33 +41,80 @@ export default class DynaModuleManager {
 
     static getInstance(): DynaModuleManager {
         if (DynaModuleManager.instance == null) {
-            throw new Error("Instance hasn't been initialized.")
-        }
-        return DynaModuleManager.instance;
-    }
-
-    static async initialize<Args extends any[]>(loaderConstructor: new (...args: Args) => BaseScriptLoader, ...args: Args): Promise<DynaModuleManager> {
-        if (DynaModuleManager.instance == null) {
-            const loader = new loaderConstructor(...args);
-            await loader.init();
-            DynaModuleManager.instance = new DynaModuleManager(loader);
+            throw new Error("Instance hasn't been initialized.");
         }
         return DynaModuleManager.instance;
     }
 
     /**
-     * 根据键获取脚本实例
-     * @param key 脚本的唯一标识键
-     * @returns 脚本实例，如果不存在返回 null
+     * Safely initialize singleton instance in thread-safe / concurrent async manner
+     */
+    static async initialize<Args extends any[]>(loaderConstructor: new (...args: Args) => BaseScriptLoader, ...args: Args): Promise<DynaModuleManager> {
+        if (DynaModuleManager.instance != null) {
+            return DynaModuleManager.instance;
+        }
+        if (DynaModuleManager.initPromise == null) {
+            const currentSeq = ++DynaModuleManager.initSeq;
+            const initialization = (async () => {
+                const loader = new loaderConstructor(...args);
+                await loader.init();
+                if (currentSeq !== DynaModuleManager.initSeq) {
+                    loader.stopWatching();
+                    throw new Error("Initialization cancelled due to reset or shutdown.");
+                }
+                DynaModuleManager.instance = new DynaModuleManager(loader);
+                return DynaModuleManager.instance;
+            })();
+
+            const guarded = initialization.finally(() => {
+                if (DynaModuleManager.initPromise === guarded) {
+                    DynaModuleManager.initPromise = null;
+                }
+            });
+
+            DynaModuleManager.initPromise = guarded;
+        }
+        return DynaModuleManager.initPromise;
+    }
+
+    /**
+     * Reset singleton instance (primarily used in unit tests)
+     */
+    static resetInstance(): void {
+        DynaModuleManager.initSeq++;
+        DynaModuleManager.initPromise = null;
+        if (DynaModuleManager.instance && DynaModuleManager.instance.loader) {
+            DynaModuleManager.instance.loader.stopWatching();
+        }
+        DynaModuleManager.instance = undefined as any;
+    }
+
+    /**
+     * Programmatically trigger an immediate reload of scripts
+     * @param forceAll If true, re-fetches all scripts regardless of timestamp
+     */
+    async refresh(forceAll: boolean = false): Promise<Array<DynaScript>> {
+        return await this.loader.refresh(forceAll);
+    }
+
+    /**
+     * Retrieves loaded script module by key
+     * @param key Unique key code for the script module
+     * @returns Module exports or null if not found
      */
     get(key: string): any {
         return this.loader.getModule(key);
     }
 
     /**
-     * 关闭动态模块管理，通常用于系统推出的时候
+     * Shutdown dynamic module manager and stop file watchers
      */
     shutdown() {
-        DynaModuleManager.instance.loader.stopWatching();
+        DynaModuleManager.initSeq++;
+        DynaModuleManager.initPromise = null;
+        if (DynaModuleManager.instance && DynaModuleManager.instance.loader) {
+            DynaModuleManager.instance.loader.stopWatching();
+        }
+        DynaModuleManager.instance = undefined as any;
     }
 }
